@@ -64,13 +64,11 @@ printf("Start the loop now\n");
 		           else if (pid == 0) run_process(Process_String,Popped.processing_time);
    		            else {
 	 	             //the parent
-                               printf("I'm %d after else: \n",getpid());
-	                       printf("I'll be stopped now & myPID= %d\n",getpid());
+	                       printf("=Scheduler STOPPED= & myPID= %d\n",getpid());
 		               raise(SIGTSTP);
-                     	       printf("CONTINUED..\n");
-                    		 printf("I'm %d after continue: \n",getpid()); 
+                     	       printf("====Scheduler CONTINUED====\n");
+                    	       printf("I'm %d after continue: \n",getpid()); 
                      }
-                        printf("I'm %d after else tany: \n",getpid()); 
     		    }
 }
     destroyClk(true);
