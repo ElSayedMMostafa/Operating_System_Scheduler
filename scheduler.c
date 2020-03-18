@@ -41,7 +41,7 @@ int main(int argc, char * argv[])
 
 struct Process_data my_data = {'A', 3, 5, 12};
 push(p_queue, my_data.priority, my_data); 
-struct Process_data my_data2 = {'A', 9, 15, 15};
+struct Process_data my_data2 = {'B', 4, 7, 12};
 push(p_queue, my_data2.priority, my_data2); 
 
 char Process_String[20]="./process$.out";
@@ -58,23 +58,21 @@ printf("Start the loop now\n");
                    printf("NO NEW processes to be run\n");
 		    raise(SIGSTOP);
                     }
-                else{
-                  int pid=fork();   
-		  if (pid == -1) perror("error in fork");    
-		   else if (pid == 0) run_process(Process_String,Popped.processing_time);
-   		   else {
-	 	    //the parent
-                     printf("I'm %d after else: \n",getpid());
-	             printf("I'll be stopped now\n");
-		     raise(SIGTSTP);
-                     printf("CONTINUED..\n");
-                     printf("I'm %d after continue: \n",getpid()); 
+                      else{
+                           int pid=fork();   
+		           if (pid == -1) perror("error in fork");    
+		           else if (pid == 0) run_process(Process_String,Popped.processing_time);
+   		            else {
+	 	             //the parent
+                               printf("I'm %d after else: \n",getpid());
+	                       printf("I'll be stopped now & myPID= %d\n",getpid());
+		               raise(SIGTSTP);
+                     	       printf("CONTINUED..\n");
+                    		 printf("I'm %d after continue: \n",getpid()); 
                      }
-                 printf("I'm %d after else tany: \n",getpid()); 
-    		}
+                        printf("I'm %d after else tany: \n",getpid()); 
+    		    }
 }
-   printf("THE WHOLE END\n");
-    
     destroyClk(true);
 }
 
@@ -94,7 +92,6 @@ void run_process(char *PS, int PS_ProcessingTime){
 	sprintf(pt_string, "%d", PS_ProcessingTime); //convert to string
         char *argv[] = { PS, pt_string };
         execve(argv[0], &argv[0], NULL); //start the new process
-        //printf("That's my end %d\n",getpid());
-	//exit(1);
+        printf("That's my end %d\n",getpid());
 }
 
