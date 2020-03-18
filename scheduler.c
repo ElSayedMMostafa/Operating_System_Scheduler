@@ -41,7 +41,7 @@ int main(int argc, char * argv[])
 
 struct Process_data my_data = {'A', 3, 5, 12};
 push(p_queue, my_data.priority, my_data); 
-struct Process_data my_data2 = {'B', 9, 15, 15};
+struct Process_data my_data2 = {'A', 9, 15, 15};
 push(p_queue, my_data2.priority, my_data2); 
 
 char Process_String[20]="./process$.out";
@@ -90,10 +90,11 @@ int status;
 
 void run_process(char *PS, int PS_ProcessingTime){
 	char pt_string[10]; 
+	printf("I'm %d & I'll start PROCESS ""%s"" now\n",getpid(),PS);
 	sprintf(pt_string, "%d", PS_ProcessingTime); //convert to string
         char *argv[] = { PS, pt_string };
         execve(argv[0], &argv[0], NULL); //start the new process
-        printf("That's my end %d\n",getpid());
-	exit(1);
+        //printf("That's my end %d\n",getpid());
+	//exit(1);
 }
 
