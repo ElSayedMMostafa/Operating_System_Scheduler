@@ -38,13 +38,14 @@ int status,pid_back;
 initClk(); 
 
 //Test Data [ Untill we finish the IPC Part ]
-struct Process_data my_data = {'A', 3, 5, 12}; //SOMETHING WEIRD HERE IN THE NAMING.
+struct Process_data my_data = {'A', 3, 5, 12, 1}; //SOMETHING WEIRD HERE IN THE NAMING.
 push(p_queue, my_data.priority, my_data); 
-struct Process_data my_data2 = {'B', 4, 6, 12};
+struct Process_data my_data2 = {'B', 4, 6, 12, 4};
 push(p_queue, my_data2.priority, my_data2); 
-struct Process_data my_data3 = {'C', 6, 7, 12};
+struct Process_data my_data3 = {'C', 6, 7, 12, 6};
 push(p_queue, my_data3.priority, my_data3);
 
+while(getClk()<1); //Start form clock=1;
 // The main functionality
 while(1){
 printf("====SCHEDULER PID==== %d\n",getpid());
@@ -66,6 +67,8 @@ printf("The next process to run: %c\n",process_name);
 		   if (pid == -1) perror("error in fork");    
 		   else if (pid == 0) run_process(Popped.processing_time);
    		   else {  //the scheduler
+                   int now=getClk();
+		  printf("At time %d Process %c started arr %d total %d remain %d wait %d\n",now,process_name,Popped.arrival_time,Popped.processing_time,Popped.processing_time,now-Popped.arrival_time); //Move this line to OUTPUT_FILE
 		      pid_back= wait(&status);
 			if(!(status & 0x00FF)) //if exited normally
  			 printf("Process %c with pid %d terminated with exit code %d\n", process_name, pid_back, status>>8);
