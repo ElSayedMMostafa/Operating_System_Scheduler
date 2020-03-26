@@ -37,10 +37,6 @@ int status,pid_back;
 //To intialize the clock
 initClk(); 
 
-// Uncomment the next 2 lines when the IPC part is ready..
-  //recieving_status = msgrcv(msgqid, &message, sizeof(pg_message.data),pg_message.mtype,!IPC_NOWAIT);
-  //push(p_queue, pg_message.data.priority, pg_message.data); 
-
 //Test Data [ Untill we finish the IPC Part ]
 struct Process_data my_data = {'A', 3, 5, 12}; //SOMETHING WEIRD HERE IN THE NAMING.
 push(p_queue, my_data.priority, my_data); 
