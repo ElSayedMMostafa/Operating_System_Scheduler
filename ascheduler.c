@@ -50,16 +50,16 @@ while(getClk()<1); //Start form clock=1;
 while(1){
 printf("====SCHEDULER PID==== %d\n",getpid());
 process_name='$';
-// Uncomment the next 2 lines when the IPC part is ready.. [ Continuous Recieving ]
-  //recieving_status = msgrcv(msgqid, &message, sizeof(pg_message.data),pg_message.mtype,IPC_NOWAIT);
-  //push(p_queue, pg_message.data.priority, pg_message.data); 
-Popped = pop(p_queue);
-process_name=Popped.name; //Now the process_string is ready to pass to execve
-printf("The next process to run: %c\n",process_name);
+  // [ Continuous Recieving ]
+  recieving_status = msgrcv(msgqid, &pg_message, sizeof(pg_message.data),pg_message.mtype,IPC_NOWAIT);
+  if(recieving_status != -1) push(p_queue, pg_message.data.priority, pg_message.data); 
+ // [ Pop a process ]
+ Popped = pop(p_queue);
+ process_name=Popped.name; //Now the process_string is ready to pass to execve
+ printf("The next process to run: %c\n",process_name);
   if (process_name=='$') {
                    printf("NO NEW processes to be run --> Gonna wait\n");  
 	           recieving_status = msgrcv(msgqid, &pg_message, sizeof(pg_message.data),pg_message.mtype,!IPC_NOWAIT);
-		printf("%d\n",recieving_status); sleep(5);
                    push(p_queue, pg_message.data.priority, pg_message.data); 
                     }
   else{
@@ -84,5 +84,4 @@ void run_process(int PS_ProcessingTime){
         char *argv[] = { "./process.out", pt_string };
         execve(argv[0], &argv[0], NULL); //start the new process
 }
-
 
