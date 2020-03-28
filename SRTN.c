@@ -71,21 +71,22 @@ process_name='$';
    		   else {  //the scheduler
                    int now=getClk();
 		  printf("At time %d Process %c started arr %d total %d remain %d wait %d\n",now,process_name,Popped.arrival_time,Popped.processing_time,Popped.processing_time,now-Popped.arrival_time); //Move this line to OUTPUT_FILE
-		      pid_back= wait(&status);
+		   sleep(1);
+                        pid_back= wait(&status);
 			if(!(status & 0x00FF)) //if exited normally
  			 printf("Process %c with pid %d finished with exit code %d\n", process_name, pid_back, status>>8);
 			else {//The process is terminated
 		int termination_time = getClk();
   printf("Process %c with pid %d terminated at %d\n", process_name, pid_back, termination_time);
- Popped.remaining_time=termination_time-now;
-
-   printf("Process %c Remainaing_time = %d\n",Popped.name,Popped.remaining_time);
-   push(p_queue, Popped.remaining_time, Popped);
-
+  Popped.processing_time=termination_time-now;
+  sleep(1);
+   printf("Process %c Remainaing_time = %d\n",Popped.name,Popped.processing_time);
+   push(p_queue, Popped.processing_time, Popped);
+   
 //recieving_status = msgrcv(msgqid, &pg_message, sizeof(pg_message.data),pg_message.mtype,!IPC_NOWAIT);
 //push(p_queue, pg_message.data.remaining_time, pg_message.data);
 
-			};
+			}
                         }
      }
 } //End of while loop
@@ -101,4 +102,3 @@ void run_process(int PS_ProcessingTime){
 void sig_handler(){
  kill(pid,SIGINT);
 }
-
