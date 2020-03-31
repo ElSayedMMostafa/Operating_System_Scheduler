@@ -1,86 +1,89 @@
-#include <stdio.h>
-#include <stdlib.h>
- 
-/*
-struct Process_data 
-{ 
-   char name; 
-   int priority; 
-   int processing_time;  
-   int starting_time;
-   int arrival_time;
-   int remaining_time;
-};
-*/
-struct Process_data 
-{ 
-   int name;
-   int arrival_time;
-   int processing_time; 
-   int remaining_time; 
-   int priority;
-   int waiting_time;
-   int process_pid;
-};
+#include "headers.h"
+#include "priority_queue.h"
+#include <string.h>
 
-typedef struct {
-    int priority;
+void clearResources(int);
+void read_process_file();
+
+struct msgbuff
+{
+    long mtype;
     struct Process_data data;
-} node_t;
+};
 
-typedef struct {
-    node_t *nodes;
-    int len;
-    int size;
-} heap_t;
- 
-void push (heap_t *h, int priority, struct Process_data data) {
-    if (h->len + 1 >= h->size) {
-        h->size = h->size ? h->size * 2 : 4;
-        h->nodes = (node_t *)realloc(h->nodes, h->size * sizeof (node_t));
+
+int main(int argc, char *argv[])
+{
+ int scheduler_pid = atoi(argv[1]); //In case of SRTN
+ //signal(SIGINT, clearResources);  
+struct Process_data p_process;
+   // Intialize the priority queue
+    heap_t *p_queue = (heap_t *)calloc(1, sizeof(heap_t));
+  // For IPC
+ key_t msgqid; int msg_key = 12345; int sending_status;
+ struct msgbuff pg_message; //Instance of the buffer (Sent by the process generator)
+ pg_message.mtype=14; //tag "Can't be ZERO"
+ msgqid = msgget(msg_key,IPC_CREAT|0644);
+ if(msgqid == -1) perror("Error in establishing..");
+
+   
+    printf("process generator has started and now reading the process txt file");
+    FILE *file_pointer;
+
+    char *line;
+    size_t lenght = 0;
+
+    file_pointer = fopen("processes.txt", "r");
+
+    if (file_pointer == NULL)
+    {
+
+        printf("Process generator : opening input processes txt file failure");
+
+        exit(EXIT_FAILURE);
     }
-    int i = h->len + 1;
-    int j = i / 2;
-    while (i > 1 && h->nodes[j].priority > priority) {
-        h->nodes[i] = h->nodes[j];
-        i = j;
-        j = j / 2;
+    printf(" Process generator : input file has successfully been opened and now reading\n ");
+
+    while ((getline(&line, &lenght, file_pointer)) != -1)
+    {
+        if (line[0] == '#')
+        {
+
+            printf(" Header line detected, process generator would skip the line\n");
+
+            continue;
+        }
+        p_process.name = atoi(strtok(line, "\t"));
+        p_process.arrival_time = atoi(strtok(NULL, "\t"));
+        p_process.processing_time = atoi(strtok(NULL, "\t"));
+        p_process.priority = atoi(strtok(NULL, "\t"));
+        p_process.remaining_time = p_process.processing_time;
+        p_process.waiting_time = 0;
+
+        push(p_queue, p_process.arrival_time, p_process);
     }
-    h->nodes[i].priority = priority;
-    h->nodes[i].data = data;
-    h->len++;
+	printf("Finished reading.\n");
+
+    fclose(file_pointer);
+// We read the file, NOW START Communication..
+      initClk();
+ int my_peak=peak_time(p_queue);
+
+while(my_peak != -1){ //not empty queue
+  if(my_peak == getClk()){
+   pg_message.data=pop(p_queue);
+  sending_status = msgsnd(msgqid,&pg_message,sizeof(pg_message.data),!IPC_NOWAIT);
+  kill(scheduler_pid,SIGUSR2); //In case of SRTN ONLY
+ if(sending_status == -1) printf("Sending Failed..\n"); //Just for monitoring
+  printf("Process %d is sent\n",pg_message.data.name);
+  my_peak=peak_time(p_queue);
+  
+  }
 }
- 
-struct Process_data pop (heap_t *h) {
-    int i, j, k;
-    if (!h->len) {
-     struct Process_data NULL_Process_data = {-1,-1,-1,-1}; //the null value
-        return NULL_Process_data  ; 
-    }
-    struct Process_data data = h->nodes[1].data;
- 
-    h->nodes[1] = h->nodes[h->len];
- 
-    h->len--;
- 
-    i = 1;
-    while (i!=h->len+1) {
-        k = h->len+1;
-        j = 2 * i;
-        if (j <= h->len && h->nodes[j].priority < h->nodes[k].priority) {
-            k = j;
-        }
-        if (j + 1 <= h->len && h->nodes[j + 1].priority < h->nodes[k].priority) {
-            k = j + 1;
-        }
-        h->nodes[i] = h->nodes[k];
-        i = k;
-    }
-    return data;
+    destroyClk(true);
 }
 
-// The next function is mine..
-int peak_time (heap_t *h){
-   if(h->len != 0) {return h->nodes[1].data.arrival_time;}
-   return -1;  
+void clearResources(int signum)
+{
+    //TODO Clears all resources in case of interruption
 }
