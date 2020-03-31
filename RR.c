@@ -16,11 +16,10 @@ struct msgbuff
     struct Process_data data;
 };
 int quantum = 4;
-int flag=0;
 int start_now,stop_now; //Global Variables
 // For IPC
 key_t msgqid;
-int msg_key = 15200;
+int msg_key = 12345;
 int recieving_status;
 struct msgbuff pg_message; //Instance of the buffer (Sent by the process generator)
 
@@ -65,7 +64,7 @@ int main(int argc, char * argv[])
     while(getClk()<1); //Start form clock=1;
 // The main functionality
     while(1) {
-        flag=0;
+
         printf("====SCHEDULER PID============================== %d\n",getpid());
         if(I_got_one==0) {
             // [ Continuous Recieving ]
