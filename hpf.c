@@ -49,7 +49,7 @@ int main(int argc, char * argv[])
 
 // For IPC
     key_t msgqid;
-    int msg_key = 15200;
+    int msg_key = 12345;
     int recieving_status;
     struct msgbuff pg_message; //Instance of the buffer (Sent by the process generator)
     pg_message.mtype=0; //to recieve on all the tags.
@@ -153,5 +153,5 @@ void int_handler() {
 void sigusr1_handler(int signum){
 // Empty
  //printf("SIGUSR1 RECIEVED..\n");
+  // DO nothing
 }
-
