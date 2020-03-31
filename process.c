@@ -11,9 +11,10 @@ void Stop_handler();
 
 int main(int agrc, char * argv[])
 {
+
 clock_t past_clk=0, current_clk=0;
 double seconds_elapsed1=0,seconds_elapsed2=0;
-int c = atoi(argv[1]); 
+//int c = atoi(argv[1]);  ----> I use it temporarily with SRTN till we concatenate the whole project
 past_clk=clock();
     seconds_elapsed1=(double)past_clk/CLOCKS_PER_SEC;
     
@@ -23,9 +24,9 @@ past_clk=clock();
         current_clk=clock();
         seconds_elapsed2=(double)current_clk/CLOCKS_PER_SEC;
     }
+kill(getppid(),SIGUSR1); //JUST FOR RR-->Doesnot affect HPF --> But should be off in case of SRTN
 exit(20);
 }
-
 
 
 
