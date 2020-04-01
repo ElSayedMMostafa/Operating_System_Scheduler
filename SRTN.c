@@ -32,7 +32,7 @@ int pid;
 int main(int argc, char * argv[])
 {
     printf("%d\n",getpid());
-    // signal(SIGUSR1,sigusr1_handler); ---> I don't need it is SRTN
+    signal(SIGUSR1,sigusr1_handler); //---> I don't need it is SRTN
     signal(SIGUSR2,sigusr2_handler);
 //Variables
     struct Process_data Popped;
@@ -92,7 +92,7 @@ int main(int argc, char * argv[])
                 //  printf("[1] I SHOULD SLEEP HERE FOR %d\n", to_finish-getClk());
 
                 while( out==0 && getClk() < to_finish ) {
-                    sleep(to_finish-getClk()); //Terminated by [ TIME ] OR [ SIGUSR2 ]
+                    sleep(2*to_finish-getClk()); //Terminated by [ TIME ] OR [ SIGUSR2 ]
                     recieving_status = msgrcv(msgqid, &pg_message, sizeof(pg_message.data),pg_message.mtype,IPC_NOWAIT);
                     while(recieving_status != -1) {
                         //  printf("I recieved %d\n",pg_message.data.name);
@@ -128,7 +128,7 @@ int main(int argc, char * argv[])
 
 
                     while( out==0 && getClk() < to_finish ) {
-                        sleep(to_finish-getClk()); //Terminated by [ TIME ] OR [ SIGUSR2 ]
+                        sleep(2*to_finish-getClk()); //Terminated by [ TIME ] OR [ SIGUSR2 ]
                         recieving_status = msgrcv(msgqid, &pg_message, sizeof(pg_message.data),pg_message.mtype,IPC_NOWAIT);
                         while(recieving_status != -1) {
                             printf("I recieved %d\n",pg_message.data.name);
