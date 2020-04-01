@@ -96,7 +96,7 @@ int main(int argc, char * argv[])
                     recieving_status = msgrcv(msgqid, &pg_message, sizeof(pg_message.data),pg_message.mtype,IPC_NOWAIT);
                     while(recieving_status != -1) {
                         //  printf("I recieved %d\n",pg_message.data.name);
-                        push(p_queue, pg_message.data.priority, pg_message.data);
+                        push(p_queue, pg_message.data.remaining_time, pg_message.data);
                         if((Popped.remaining_time - (getClk()-start_now))>pg_message.data.remaining_time) out=1;
                         recieving_status = msgrcv(msgqid, &pg_message, sizeof(pg_message.data),pg_message.mtype,IPC_NOWAIT);
                     }
@@ -132,7 +132,7 @@ int main(int argc, char * argv[])
                         recieving_status = msgrcv(msgqid, &pg_message, sizeof(pg_message.data),pg_message.mtype,IPC_NOWAIT);
                         while(recieving_status != -1) {
                             printf("I recieved %d\n",pg_message.data.name);
-                            push(p_queue, pg_message.data.priority, pg_message.data);
+                            push(p_queue, pg_message.data.remaining_time, pg_message.data);
                             if((Popped.remaining_time - (getClk()-start_now))>pg_message.data.remaining_time) out=1;
                             recieving_status = msgrcv(msgqid, &pg_message, sizeof(pg_message.data),pg_message.mtype,IPC_NOWAIT);
                         }
@@ -170,5 +170,5 @@ void sigusr2_handler(int signum) {
 }
 void sigusr1_handler(int signum) {
 // Empty
-    printf("SIGUSR1 RECIEVED..\n");
+ //   printf("SIGUSR1 RECIEVED..\n");
 }
