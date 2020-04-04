@@ -4,9 +4,9 @@ build:
 	gcc test_generator.c -o test_generator.out
 	gcc clk.c -o clk.out
 	gcc process.c -o process.out
-	gcc hpf.c -o hpf.out
-	gcc SRTN.c -o srtn.out
-	gcc RR.c -o rr.out
+	gcc hpf_scheduler.c -o hpf.out -lm
+	gcc SRTN_scheduler.c -o srtn.out -lm
+	gcc rr_scheduler.c -o rr.out -lm
 
 
 clean:
