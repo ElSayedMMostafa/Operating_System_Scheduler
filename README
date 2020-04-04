@@ -1,5 +1,5 @@
 # This project is a "Scheduler" that manages the running and waiting processes in the operating system.
-  This scheduler run by 3 different algorithms, the user can only choose one at execution.
+  This scheduler runs by 3 different algorithms, the user can only choose one at execution.
   The available algorithms are :
                                 1- Highest Priority First (HPF)
                                 2- Round Robin (RR)
