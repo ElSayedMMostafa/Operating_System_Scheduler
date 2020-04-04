@@ -24,11 +24,14 @@ void sigusr1_handler();
 void run_process(int PS_ProcessingTime);
 int pid; //The pid of the process..
 
-FILE *f;
+FILE *f_log;
+FILE *f_perf;
 int counter=-1;
 int s_TA=0;
 int s_WTA=0;
 double arr_WTA[MAXSIZE];
+int s_PT=0;
+int first_start;
 
 int start_now,end_now;
 int main(int argc, char * argv[])
@@ -37,7 +40,8 @@ int main(int argc, char * argv[])
     signal(SIGUSR1,sigusr1_handler);
 // FILE
 
-    f = fopen("output.log", "w");
+    f_log = fopen("scheduler.log", "w");
+    f_perf = fopen("scheduler.perf", "w");
 
 //Variables
     struct Process_data Popped;
@@ -48,12 +52,14 @@ int main(int argc, char * argv[])
     int I_got_one=0;
 
 // For IPC
-    key_t msgqid;
+    key_t msgqid,msgqid2;
     int msg_key = 12345;
+    int msg_key2 = 12346;
     int recieving_status;
     struct msgbuff pg_message; //Instance of the buffer (Sent by the process generator)
     pg_message.mtype=0; //to recieve on all the tags.
     msgqid = msgget(msg_key,0644);
+    msgqid2 = msgget(msg_key2,0644);
 
     if(msgqid == -1) perror("Error in recieving, No msg_queue exits");
 
@@ -63,27 +69,15 @@ int main(int argc, char * argv[])
 //To intialize the clock
     initClk();
 
-    /*
-    //Test Data [ Untill we finish the IPC Part ]
-    struct Process_data my_data = {10, 3, 5, 12, 1}; //SOMETHING WEIRD HERE IN THE NAMING.
-    push(p_queue, my_data.priority, my_data);
-    struct Process_data my_data2 = {20, 4, 6, 12, 4};
-    push(p_queue, my_data2.priority, my_data2);
-    struct Process_data my_data3 = {30, 6, 7, 12, 6};
-    push(p_queue, my_data3.priority, my_data3);
-    */
-
     while(getClk()<1); //Start form clock=1;
 // The main functionality
     while(1) {
-        printf("====SCHEDULER PID==== %d\n",getpid());
         process_name=-1;
-
+        recieving_status=0;
         // [ Continuous Recieving ]
-        if(I_got_one==0) {
+        while (recieving_status != -1 ) {
             recieving_status = msgrcv(msgqid, &pg_message, sizeof(pg_message.data),14,IPC_NOWAIT);
             if(recieving_status != -1) push(p_queue, pg_message.data.priority, pg_message.data);
-            else printf("Recieved NOTHING..\n");
         }
 
 // [ Pop a process ]
@@ -92,25 +86,25 @@ int main(int argc, char * argv[])
 //printf("%d\n",process_name);
 
         if (process_name==-1) {
+            recieving_status = msgrcv(msgqid2, &pg_message, sizeof(pg_message.data),14,IPC_NOWAIT);
+            if(recieving_status != -1) break;
             printf("NO NEW processes to be run --> Gonna wait\n");
             recieving_status = msgrcv(msgqid, &pg_message, sizeof(pg_message.data),14,!IPC_NOWAIT);
-            printf("I recieved.. %d\n",pg_message.data.name);
             push(p_queue, pg_message.data.priority, pg_message.data);
-            I_got_one=1;
+
         }
         else {
-            I_got_one=0;
-            //printf("HERE RIGHT?\n");
-            printf("The next process to run: %d for %d seconds \n",process_name,Popped.processing_time);
+
             pid=fork();
             if (pid == -1) perror("error in fork");
             else if (pid == 0) run_process(Popped.processing_time);
             ////=================================/////
             else {  //the scheduler
                 start_now=getClk();
-                fprintf(f,"At time %d Process %d started arr %d total %d remain %d wait %d\n",start_now,process_name,Popped.arrival_time,Popped.processing_time,Popped.processing_time,start_now-Popped.arrival_time);
+                s_PT= s_PT+Popped.processing_time;
+                if(process_name==1)first_start=Popped.arrival_time;
+                fprintf(f_log,"At time %d Process %d started arr %d total %d remain %d wait %d\n",start_now,process_name,Popped.arrival_time,Popped.processing_time,Popped.processing_time,start_now-Popped.arrival_time);
                 pid_back= wait(&status);
-                printf("HERE..\n");
                 if(!(status & 0x00FF)) { //if exited normally
                     end_now=getClk();
                     counter++;
@@ -119,14 +113,16 @@ int main(int argc, char * argv[])
                     WTA=TA/Popped.processing_time;
                     arr_WTA[counter]=WTA;
                     s_WTA+=WTA;
-                    fprintf(f,"At time %d Process %d finished arr %d total %d remain 0 wait %d TA %d WTA %f\n",end_now,process_name,Popped.arrival_time,Popped.processing_time,start_now-Popped.arrival_time,TA,WTA);
+                    fprintf(f_log,"At time %d Process %d finished arr %d total %d remain 0 wait %d TA %d WTA %.2f\n",end_now,process_name,Popped.arrival_time,Popped.processing_time,start_now-Popped.arrival_time,TA,WTA);
+                    printf("FINISHED PROCESS\n");
                 }
             }
             ////=================================/////
 
         }
     } //End of while loop
-    destroyClk(true);
+    raise(SIGINT);
+    //destroyClk(false);
 }
 
 void run_process(int PS_ProcessingTime) {
@@ -139,19 +135,25 @@ void run_process(int PS_ProcessingTime) {
 void int_handler() {
 
     double std_WTA=0;
-    double avg_TA = (double)s_TA/counter;
+    double avg_WAITING = (double)((s_TA-s_PT)/counter);
     double avg_WTA = (double)s_WTA/counter;
-    fprintf(f,"Average TA = %f\n",avg_TA);
-    fprintf(f,"Average WTA = %f\n",avg_WTA);
-    /*for(int i=0; i<counter; i++){
-      std_WTA += pow((arr_WTA[i]-avg_WTA),2);
-     }
-     fprintf(f,"std WTA = %f\n",sqrt(std_WTA/counter));*/
+    double ut_time = (double) s_PT*100/(end_now-first_start);
+    fprintf(f_perf,"Utilization time =%.2f %%\n", ut_time);
+    fprintf(f_perf,"Average WTA = %.2f\n",avg_WTA);
+    fprintf(f_perf,"Average Waiting = %.2f\n",avg_WAITING);
+
+
+    for(int i=0; i<counter; i++) {
+        std_WTA += pow((arr_WTA[i]-avg_WTA),2);
+    }
+    fprintf(f_perf,"std WTA = %f\n",sqrt(std_WTA/counter));
+    fclose(f_log);
+    fclose(f_perf);
     exit(0);
 }
 
-void sigusr1_handler(int signum){
+void sigusr1_handler(int signum) {
 // Empty
- //printf("SIGUSR1 RECIEVED..\n");
-  // DO nothing
+//printf("SIGUSR1 RECIEVED..\n");
+    // DO nothing
 }
