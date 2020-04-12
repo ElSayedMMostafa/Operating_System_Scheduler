@@ -7,6 +7,6 @@
 
 # The user has to run ./pg_out at the terminal
   then, he is asked to choose one algorithm to apply to the processes.
-# The processes' informations must be saved at .txt file named "processes.txt" with the header and format attached in "processes.txt" file in this repository.
+# The processes' information must be saved at .txt file named "processes.txt" with the header and format attached in "processes.txt" file in this repository.
 
 
